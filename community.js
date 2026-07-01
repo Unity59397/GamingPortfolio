@@ -70,6 +70,42 @@ const commentNameInput = document.getElementById("comment-name");
 const commentMessageInput = document.getElementById("comment-message");
 const commentList = document.getElementById("comment-list");
 const commentStatus = document.getElementById("comment-status");
+const adminToggle = document.getElementById("admin-toggle");
+
+const ADMIN_KEY_STORAGE = "unity-admin-key";
+
+function getAdminKey() {
+    return sessionStorage.getItem(ADMIN_KEY_STORAGE) || "";
+}
+
+function isAdmin() {
+    return getAdminKey().length > 0;
+}
+
+function updateAdminToggleLabel() {
+    adminToggle.textContent = isAdmin() ? "Log out" : "Admin";
+}
+
+adminToggle.addEventListener("click", () => {
+
+    if (isAdmin()) {
+        sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+        updateAdminToggleLabel();
+        renderComments(lastLoadedComments);
+        return;
+    }
+
+    const key = window.prompt("Admin key:");
+    if (!key) return;
+
+    sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
+    updateAdminToggleLabel();
+    renderComments(lastLoadedComments);
+});
+
+updateAdminToggleLabel();
+
+let lastLoadedComments = [];
 
 function showCommentStatus(message, isError = false) {
     commentStatus.textContent = message;
@@ -80,6 +116,7 @@ function showCommentStatus(message, isError = false) {
 
 function renderComments(comments) {
 
+    lastLoadedComments = comments;
     commentList.innerHTML = "";
 
     if (comments.length === 0) {
@@ -89,6 +126,8 @@ function renderComments(comments) {
         commentList.appendChild(empty);
         return;
     }
+
+    const admin = isAdmin();
 
     comments
         .slice()
@@ -102,10 +141,15 @@ function renderComments(comments) {
                 ? new Date(comment.createdAt).toLocaleDateString()
                 : "";
 
+            const deleteBtnHtml = admin
+                ? `<button type="button" class="comment-delete" data-id="${comment.id}" aria-label="Delete comment">✕</button>`
+                : "";
+
             item.innerHTML = `
                 <div class="comment-head">
                     <span class="comment-name">${escapeHtml(comment.name)}</span>
                     <span class="comment-date">${date}</span>
+                    ${deleteBtnHtml}
                 </div>
                 <p class="comment-message">${escapeHtml(comment.message)}</p>
             `;
@@ -113,6 +157,42 @@ function renderComments(comments) {
             commentList.appendChild(item);
         });
 }
+
+commentList.addEventListener("click", async (e) => {
+
+    const btn = e.target.closest(".comment-delete");
+    if (!btn) return;
+
+    if (!window.confirm("Delete this comment?")) return;
+
+    const id = btn.dataset.id;
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/comments/${id}`, {
+            method: "DELETE",
+            headers: { "x-admin-key": getAdminKey() }
+        });
+
+        if (res.status === 401) {
+            showCommentStatus("Admin key rejected — log in again.", true);
+            sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+            updateAdminToggleLabel();
+            renderComments(lastLoadedComments);
+            return;
+        }
+
+        if (!res.ok) throw new Error("Delete failed");
+
+        showCommentStatus("Comment deleted.");
+        loadComments();
+
+    } catch (err) {
+        console.error("Couldn't delete comment:", err);
+        showCommentStatus("Couldn't delete that comment — try again.", true);
+        btn.disabled = false;
+    }
+});
 
 async function loadComments() {
     try {

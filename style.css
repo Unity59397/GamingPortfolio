@@ -292,6 +292,47 @@ body {
     gap: 8px;
 }
 
+.admin-link {
+    background: none;
+    border: 1px solid var(--border-soft);
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 5px 11px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-link:hover {
+    color: var(--text-primary);
+    border-color: var(--arcane);
+}
+
+.comment-delete {
+    margin-left: auto;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid var(--border-soft);
+    background: transparent;
+    color: var(--text-faint);
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.comment-delete:hover {
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.comment-delete:disabled { opacity: 0.5; cursor: default; }
+
 .star { color: var(--ember); }
 
 .section-sub {
@@ -717,11 +758,12 @@ select { cursor: pointer; }
 
 .comment-head {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
     gap: 10px;
     margin-bottom: 6px;
 }
+
+.comment-name { flex: 1; min-width: 0; }
 
 .comment-name { font-weight: 700; font-size: 13.5px; }
 

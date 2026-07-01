@@ -149,7 +149,7 @@ app.post("/api/likes", async (req, res) => {
 app.get("/api/comments", async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT name, message, created_at AS "createdAt"
+            `SELECT id, name, message, created_at AS "createdAt"
              FROM comments
              ORDER BY created_at ASC`
         );
@@ -182,6 +182,41 @@ app.post("/api/comments", async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Couldn't save comment" });
+    }
+});
+
+// Only requests carrying the correct x-admin-key header can delete a
+// comment. Set ADMIN_KEY as an environment variable on Render (same way
+// as STEAM_KEY) — pick any long random string, it's just a shared secret
+// between you and the server, not a login system.
+app.delete("/api/comments/:id", async (req, res) => {
+
+    const providedKey = req.get("x-admin-key");
+
+    if (!process.env.ADMIN_KEY || providedKey !== process.env.ADMIN_KEY) {
+        return res.status(401).json({ error: "Not authorized" });
+    }
+
+    const id = parseInt(req.params.id, 10);
+
+    if (Number.isNaN(id)) {
+        return res.status(400).json({ error: "Invalid comment id" });
+    }
+
+    try {
+        const result = await pool.query(
+            `DELETE FROM comments WHERE id = $1`,
+            [id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Comment not found" });
+        }
+
+        res.json({ ok: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Couldn't delete comment" });
     }
 });
 
