@@ -824,3 +824,11 @@ select { cursor: pointer; }
     .portrait, .portrait-img { width: 128px; height: 128px; }
     .name { font-size: 26px; }
 }
+#particleCanvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
