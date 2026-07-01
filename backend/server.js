@@ -1,5 +1,5 @@
 const express = require("express");
-const axios = require("./node_modules/axios/index.d.cts");
+const axios = require("axios");
 const cors = require("cors");
 require("dotenv").config();
 console.log("Loaded key?", !!process.env.STEAM_KEY, "Loaded id?", !!process.env.STEAM_ID);
