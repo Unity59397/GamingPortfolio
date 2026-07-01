@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unity — Community</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="bg-glow" aria-hidden="true"></div>
+
+<nav class="site-nav">
+    <a href="index.html" class="nav-brand">
+        <span class="nav-brand-glow" aria-hidden="true"></span>
+        UNITY
+    </a>
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Profile</a>
+        <a href="contacts.html" class="nav-link">Contacts</a>
+        <a href="community.html" class="nav-link is-active">Community</a>
+    </div>
+</nav>
+
+<header class="page-hero">
+    <p class="eyebrow">Player Feed</p>
+    <h1 class="name">Community</h1>
+    <p class="tagline">Say hi, or just smash the button.</p>
+</header>
+
+<main class="container">
+
+    <section class="like-row">
+        <button id="like-btn" class="like-btn" type="button" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="like-icon">
+                <path d="M12 21s-7.5-4.6-10-9.2C.4 8.6 1.8 5 5.4 4.2 7.7 3.7 10 4.8 12 7c2-2.2 4.3-3.3 6.6-2.8 3.6.8 5 4.4 3.4 7.6C19.5 16.4 12 21 12 21z"/>
+            </svg>
+            <span id="like-count">0</span>
+            <span class="like-label">Like this profile</span>
+        </button>
+    </section>
+
+    <section>
+        <div class="section-heading">
+            <h2>Leave a comment</h2>
+        </div>
+
+        <form id="comment-form" class="comment-form">
+            <input id="comment-name" placeholder="Your name" maxlength="40" required>
+            <textarea id="comment-message" placeholder="Leave a message…" maxlength="280" rows="3" required></textarea>
+            <button type="submit">Post comment</button>
+        </form>
+
+        <div id="comment-status" class="comment-status" hidden></div>
+
+        <div id="comment-list" class="comment-list"></div>
+    </section>
+
+</main>
+
+<script src="community.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unity — Contacts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="bg-glow" aria-hidden="true"></div>
+
+<nav class="site-nav">
+    <a href="index.html" class="nav-brand">
+        <span class="nav-brand-glow" aria-hidden="true"></span>
+        UNITY
+    </a>
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Profile</a>
+        <a href="contacts.html" class="nav-link is-active">Contacts</a>
+        <a href="community.html" class="nav-link">Community</a>
+    </div>
+</nav>
+
+<header class="page-hero">
+    <p class="eyebrow">Find me elsewhere</p>
+    <h1 class="name">Contacts</h1>
+    <p class="tagline">Every platform I actually check.</p>
+</header>
+
+<main class="container">
+
+    <section>
+        <div class="section-heading">
+            <h2>Platforms</h2>
+        </div>
+        <div id="contacts" class="contact-grid"></div>
+    </section>
+
+    <section class="alt-account-section">
+        <div class="section-heading">
+            <h2><span class="star">✦</span> Alt Account</h2>
+            <p class="section-sub">Second profile, different vibe</p>
+        </div>
+        <div id="alt-account" class="contact-grid"></div>
+    </section>
+
+</main>
+
+<script src="contacts.js"></script>
+</body>
+</html>
