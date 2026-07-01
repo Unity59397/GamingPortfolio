@@ -35,11 +35,15 @@ async function getProfile() {
     return res.data.response.players[0];
 }
 
-// 🚀 Combined endpoint
+app.get("/", (req, res) => {
+    res.json({
+        status: "online",
+        message: "Steam API backend running"
+    });
+});
+
 app.get("/api/steam", async (req, res) => {
-
     try {
-
         const [games, profile] = await Promise.all([
             getGames(),
             getProfile()
@@ -54,7 +58,6 @@ app.get("/api/steam", async (req, res) => {
         console.log(err);
         res.status(500).json({ error: "Steam API failed" });
     }
-
 });
 
 const PORT = process.env.PORT || 3000;
