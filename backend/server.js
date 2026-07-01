@@ -1,10 +1,10 @@
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
+const { Pool } = require("pg");
 require("dotenv").config();
 console.log("Loaded key?", !!process.env.STEAM_KEY, "Loaded id?", !!process.env.STEAM_ID);
+console.log("Loaded DATABASE_URL?", !!process.env.DATABASE_URL);
 
 const app = express();
 app.use(cors());
@@ -13,36 +13,48 @@ app.use(express.json());
 const KEY = process.env.STEAM_KEY;
 const STEAM_ID = process.env.STEAM_ID;
 
-/* ---------------- SIMPLE JSON-FILE DATA STORE ----------------
-   Lightweight store for personal-scale traffic — reads/rewrites a JSON
-   file on disk per request. NOTE: Render's free tier filesystem is
-   ephemeral, so this data can reset when the service restarts/redeploys.
-   Fine for now; swap for a real database (e.g. a free Postgres/Mongo tier)
-   if you want likes/comments to persist long-term. */
+/* ---------------- POSTGRES ----------------
+   Replaces the old JSON-file store. Render's free Postgres instances
+   require SSL, and Render's own connection strings use a self-signed
+   cert chain, so `rejectUnauthorized: false` is expected here (this
+   is normal for Render-to-Render connections, not a security downgrade
+   you introduced). */
 
-const DATA_DIR = path.join(__dirname, "data");
-const LIKES_FILE = path.join(DATA_DIR, "likes.json");
-const COMMENTS_FILE = path.join(DATA_DIR, "comments.json");
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
 
-function ensureDataFiles() {
-    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
-    if (!fs.existsSync(LIKES_FILE)) {
-        fs.writeFileSync(LIKES_FILE, JSON.stringify({ count: 0 }, null, 2));
-    }
-    if (!fs.existsSync(COMMENTS_FILE)) {
-        fs.writeFileSync(COMMENTS_FILE, JSON.stringify([], null, 2));
-    }
+async function initDb() {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS likes (
+            id INTEGER PRIMARY KEY DEFAULT 1,
+            count INTEGER NOT NULL DEFAULT 0
+        );
+    `);
+
+    // Seed the single likes row if it doesn't exist yet
+    await pool.query(`
+        INSERT INTO likes (id, count)
+        VALUES (1, 0)
+        ON CONFLICT (id) DO NOTHING;
+    `);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS comments (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            message TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+    `);
+
+    console.log("Database ready");
 }
 
-function readJson(file) {
-    return JSON.parse(fs.readFileSync(file, "utf-8"));
-}
-
-function writeJson(file, data) {
-    fs.writeFileSync(file, JSON.stringify(data, null, 2));
-}
-
-ensureDataFiles();
+initDb().catch(err => {
+    console.error("Failed to initialize database:", err);
+});
 
 // 🎮 Get owned games
 async function getGames() {
@@ -96,12 +108,17 @@ app.get("/api/steam", async (req, res) => {
 
 /* ---------------- LIKES ---------------- */
 
-app.get("/api/likes", (req, res) => {
-    const data = readJson(LIKES_FILE);
-    res.json(data);
+app.get("/api/likes", async (req, res) => {
+    try {
+        const result = await pool.query("SELECT count FROM likes WHERE id = 1");
+        res.json({ count: result.rows[0]?.count ?? 0 });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Couldn't load likes" });
+    }
 });
 
-app.post("/api/likes", (req, res) => {
+app.post("/api/likes", async (req, res) => {
 
     const action = req.body && req.body.action;
 
@@ -109,22 +126,41 @@ app.post("/api/likes", (req, res) => {
         return res.status(400).json({ error: "action must be 'like' or 'unlike'" });
     }
 
-    const data = readJson(LIKES_FILE);
-    data.count += action === "like" ? 1 : -1;
-    if (data.count < 0) data.count = 0;
+    try {
+        const delta = action === "like" ? 1 : -1;
 
-    writeJson(LIKES_FILE, data);
-    res.json(data);
+        const result = await pool.query(
+            `UPDATE likes
+             SET count = GREATEST(count + $1, 0)
+             WHERE id = 1
+             RETURNING count`,
+            [delta]
+        );
+
+        res.json({ count: result.rows[0].count });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Couldn't update likes" });
+    }
 });
 
 /* ---------------- COMMENTS ---------------- */
 
-app.get("/api/comments", (req, res) => {
-    const comments = readJson(COMMENTS_FILE);
-    res.json({ comments });
+app.get("/api/comments", async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT name, message, created_at AS "createdAt"
+             FROM comments
+             ORDER BY created_at ASC`
+        );
+        res.json({ comments: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Couldn't load comments" });
+    }
 });
 
-app.post("/api/comments", (req, res) => {
+app.post("/api/comments", async (req, res) => {
 
     const name = (req.body && req.body.name || "").toString().trim();
     const message = (req.body && req.body.message || "").toString().trim();
@@ -137,16 +173,16 @@ app.post("/api/comments", (req, res) => {
         return res.status(400).json({ error: "name or message too long" });
     }
 
-    const comments = readJson(COMMENTS_FILE);
-
-    comments.push({
-        name,
-        message,
-        createdAt: new Date().toISOString()
-    });
-
-    writeJson(COMMENTS_FILE, comments);
-    res.status(201).json({ ok: true });
+    try {
+        await pool.query(
+            `INSERT INTO comments (name, message) VALUES ($1, $2)`,
+            [name, message]
+        );
+        res.status(201).json({ ok: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Couldn't save comment" });
+    }
 });
 
 const PORT = process.env.PORT || 3000;

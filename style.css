@@ -547,12 +547,20 @@ select { cursor: pointer; }
     border-radius: 50%;
     display: grid;
     place-items: center;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 17px;
-    color: var(--bg-void);
     background: var(--accent);
     box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.contact-icon {
+    width: 22px;
+    height: 22px;
+    background-color: var(--bg-void);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-position: center;
+    mask-position: center;
 }
 
 .contact-info { min-width: 0; flex: 1; }
