@@ -12,7 +12,7 @@ let currentProfile = null;
 
 async function loadSteam() {
 
-    const res = await fetch("https://gamingportfolio.onrender.com");
+    const res = await fetch("https://gamingportfolio.onrender.com/api/steam");
     const data = await res.json();
 
     console.log("DATA RECEIVED:", data);
