@@ -1,5 +1,6 @@
 const canvas = document.getElementById("particleCanvas");
 const ctx = canvas.getContext("2d");
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 let particles = [];
 let mouse = { x: null, y: null };
@@ -196,7 +197,12 @@ function animate() {
         p.draw();
     });
 
-    requestAnimationFrame(animate);
+    if (!reduceMotion) requestAnimationFrame(animate);
 }
 
-animate();
+if (reduceMotion) {
+    // Draw one still frame instead of a continuous loop
+    particles.forEach(p => p.draw());
+} else {
+    animate();
+}

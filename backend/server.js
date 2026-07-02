@@ -81,6 +81,30 @@ async function getProfile() {
     return res.data.response.players[0];
 }
 
+/* ---------------- STEAM RESPONSE CACHE ----------------
+   Caches the combined games+profile result in memory for 2 minutes so
+   repeat page loads don't re-hit Steam's API every time. Resets whenever
+   the server restarts. */
+
+let steamCache = null;
+let steamCacheAt = 0;
+const STEAM_CACHE_TTL_MS = 2 * 60 * 1000;
+
+async function getSteamData() {
+
+    const isFresh = steamCache && (Date.now() - steamCacheAt < STEAM_CACHE_TTL_MS);
+    if (isFresh) return steamCache;
+
+    const [games, profile] = await Promise.all([
+        getGames(),
+        getProfile()
+    ]);
+
+    steamCache = { games, profile };
+    steamCacheAt = Date.now();
+    return steamCache;
+}
+
 app.get("/", (req, res) => {
     res.json({
         status: "online",
@@ -90,15 +114,8 @@ app.get("/", (req, res) => {
 
 app.get("/api/steam", async (req, res) => {
     try {
-        const [games, profile] = await Promise.all([
-            getGames(),
-            getProfile()
-        ]);
-
-        res.json({
-            games,
-            profile
-        });
+        const data = await getSteamData();
+        res.json(data);
 
     } catch (err) {
         console.log(err);

@@ -12,17 +12,33 @@ let currentProfile = null;
 
 async function loadSteam() {
 
-    const res = await fetch("https://gamingportfolio.onrender.com/api/steam");
-    const data = await res.json();
+    try {
+        const res = await fetch("https://gamingportfolio.onrender.com/api/steam");
 
-    console.log("DATA RECEIVED:", data);
+        if (!res.ok) throw new Error(`Backend responded with ${res.status}`);
 
-    allGames = data.games || [];
-    currentProfile = data.profile || null;
+        const data = await res.json();
 
-    renderHeader();
-    renderFavorites();
-    renderGames(allGames);
+        console.log("DATA RECEIVED:", data);
+
+        allGames = data.games || [];
+        currentProfile = data.profile || null;
+
+        renderHeader();
+        renderFavorites();
+        renderGames(allGames);
+
+    } catch (err) {
+        console.error("Couldn't load Steam data:", err);
+
+        const container = document.getElementById("games");
+        container.innerHTML = `
+            <div class="loading-state">
+                Couldn't reach the backend. It may still be waking up —
+                try refreshing in a moment.
+            </div>
+        `;
+    }
 }
 
 /* ---------------- HEADER ---------------- */
