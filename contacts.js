@@ -1,13 +1,3 @@
-/* ---------------- CONFIG ----------------
-   Fill in your real handles/links below.
-   type: "link" -> shows a "Visit profile" button that opens `url`
-   type: "copy" -> shows a "Copy tag" button that copies `handle`
-   (most platforms don't offer public add-friend links, so "copy" is the honest default)
-
-   `icon` is the platform's slug on simpleicons.org (an open, CC0-licensed
-   set of official brand icons). If a slug ever changes or an icon looks
-   wrong, look the platform up at https://simpleicons.org to confirm it. */
-
 const CONTACTS = [
     { platform: "Discord",     handle: "unity59397",    accent: "#5865F2", type: "copy", icon: "discord" },
     { platform: "Epic Games",  handle: "Unity59397",     accent: "#313131", type: "copy", icon: "epicgames" },
@@ -24,7 +14,7 @@ const ALT_ACCOUNT = [
     { platform: "Steam (Alt)", handle: "[CVR] Unity", accent: "#8b6bff", type: "link",url:"https://steamcommunity.com/profiles/76561199798911009/", icon: "steam" }
 ];
 
-/* ---------------- RENDER ---------------- */
+/*RENDER*/
 
 function buildContactCard(entry, index) {
 
@@ -69,7 +59,7 @@ if (ALT_ACCOUNT.length === 0) {
     renderGrid("alt-account", ALT_ACCOUNT);
 }
 
-/* ---------------- COPY TO CLIPBOARD ---------------- */
+/*COPY TO CLIPBOARD*/
 
 document.body.addEventListener("click", (e) => {
 
