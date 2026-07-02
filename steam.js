@@ -1,8 +1,4 @@
-/* ---------------- CONFIG ---------------- */
-
-// Add the Steam appids of your favorite games here.
-// Find an appid in a game's Steam store URL, e.g.
-// store.steampowered.com/app/730/  ->  730 is Counter-Strike 2's appid
+//Add steam favourite game via ID
 const FAVORITE_APPIDS = [
     730,1771300,1222140,379430 
 ];
@@ -23,6 +19,7 @@ async function loadSteam() {
 
         allGames = data.games || [];
         currentProfile = data.profile || null;
+        allGames.sort((a, b) => b.playtime_forever - a.playtime_forever);
 
         renderHeader();
         renderFavorites();
